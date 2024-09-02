@@ -5,6 +5,9 @@ import 'package:latlong2/latlong.dart';
 
 const defaultZoom = 10;
 const defaultPadding = 50;
+const iconSize = 40.0;
+
+const appName = 'Location Distance Calculator';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Location Distance Calculator',
+      title: appName,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -29,20 +32,20 @@ class LocationPage extends StatefulWidget {
   const LocationPage({super.key});
 
   @override
-  _LocationPageState createState() => _LocationPageState();
+  State<LocationPage> createState() => LocationPageState();
 }
 
-class _LocationPageState extends State<LocationPage> {
+class LocationPageState extends State<LocationPage> {
   Position? _currentPosition;
   String _selectedCity = '';
   double _distance = 0;
   final MapController _mapController = MapController();
 
   final Map<String, LatLng> cities = {
-    'Chicago': LatLng(41.8781, -87.6298),
-    'New York': LatLng(40.7128, -74.0060),
-    'Paris': LatLng(48.8566, 2.3522),
-    'Singapore': LatLng(1.3521, 103.8198),
+    'Chicago': const LatLng(41.8781, -87.6298),
+    'New York': const LatLng(40.7128, -74.0060),
+    'Paris': const LatLng(48.8566, 2.3522),
+    'Singapore': const LatLng(1.3521, 103.8198),
   };
 
   @override
@@ -91,7 +94,7 @@ class _LocationPageState extends State<LocationPage> {
     if (_currentPosition != null) {
       _mapController.move(
         LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-        10, // Zoom level
+        defaultZoom.toDouble(), // Zoom level
       );
     }
   }
@@ -108,7 +111,8 @@ class _LocationPageState extends State<LocationPage> {
     );
 
     setState(() {
-      _distance = distanceInMeters / 1000; // Convert to kilometers
+      // display in killometer
+      _distance = distanceInMeters / 1000;
     });
   }
 
@@ -119,10 +123,7 @@ class _LocationPageState extends State<LocationPage> {
         LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
     LatLng cityLocation = cities[_selectedCity]!;
 
-    // Calculate the bounds that include both the user's location and the selected city
     final bounds = LatLngBounds.fromPoints([userLocation, cityLocation]);
-
-    // Fit the map to the calculated bounds with some padding
     _mapController.fitCamera(
       CameraFit.bounds(
         bounds: bounds,
@@ -146,13 +147,13 @@ class _LocationPageState extends State<LocationPage> {
                 initialCenter: _currentPosition != null
                     ? LatLng(
                         _currentPosition!.latitude, _currentPosition!.longitude)
-                    : LatLng(0, 0),
+                    : const LatLng(0, 0),
                 initialZoom: defaultZoom.toDouble(),
               ),
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.app',
+                  userAgentPackageName: appName,
                 ),
                 if (_currentPosition != null && _selectedCity.isNotEmpty)
                   PolylineLayer(
@@ -174,16 +175,16 @@ class _LocationPageState extends State<LocationPage> {
                       Marker(
                         point: LatLng(_currentPosition!.latitude,
                             _currentPosition!.longitude),
-                        width: 80,
-                        height: 80,
+                        width: iconSize,
+                        height: iconSize,
                         child: const Icon(Icons.location_on,
                             color: Colors.blueAccent, size: 40),
                       ),
                     if (_selectedCity.isNotEmpty)
                       Marker(
                         point: cities[_selectedCity]!,
-                        width: 80,
-                        height: 80,
+                        width: iconSize,
+                        height: iconSize,
                         child: const Icon(Icons.location_city,
                             color: Colors.blueAccent, size: 40),
                       ),
@@ -229,6 +230,7 @@ class _LocationPageState extends State<LocationPage> {
                   'Distance: ${_distance.toStringAsFixed(2)} km',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),
