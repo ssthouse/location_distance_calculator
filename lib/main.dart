@@ -99,7 +99,7 @@ class LocationPageState extends State<LocationPage> {
     }
   }
 
-  Future<void> _calculateDistance() async {
+  void _calculateDistance() {
     if (_currentPosition == null || _selectedCity.isEmpty) return;
 
     LatLng destination = cities[_selectedCity]!;
