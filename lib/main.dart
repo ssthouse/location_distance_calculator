@@ -3,6 +3,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+const defaultZoom = 10;
+const defaultPadding = 50;
+
 void main() {
   runApp(const MyApp());
 }
@@ -33,6 +36,7 @@ class _LocationPageState extends State<LocationPage> {
   Position? _currentPosition;
   String _selectedCity = '';
   double _distance = 0;
+  final MapController _mapController = MapController();
 
   final Map<String, LatLng> cities = {
     'Chicago': LatLng(41.8781, -87.6298),
@@ -44,19 +48,16 @@ class _LocationPageState extends State<LocationPage> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _startLocationService();
   }
 
-  Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  Future<void> _startLocationService() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       return;
     }
 
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
@@ -68,17 +69,38 @@ class _LocationPageState extends State<LocationPage> {
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentPosition = position;
+    Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: defaultZoom,
+      ),
+    ).listen((Position position) {
+      // Check if this is the first time we're getting the position
+      var isFirstPosition = _currentPosition == null;
+      setState(() {
+        _currentPosition = position;
+        if (isFirstPosition) {
+          _focusMapOnUser();
+        }
+      });
+      _calculateDistance();
     });
+  }
+
+  void _focusMapOnUser() {
+    if (_currentPosition != null) {
+      _mapController.move(
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        10, // Zoom level
+      );
+    }
   }
 
   Future<void> _calculateDistance() async {
     if (_currentPosition == null || _selectedCity.isEmpty) return;
 
     LatLng destination = cities[_selectedCity]!;
-    double distanceInMeters = await Geolocator.distanceBetween(
+    double distanceInMeters = Geolocator.distanceBetween(
       _currentPosition!.latitude,
       _currentPosition!.longitude,
       destination.latitude,
@@ -88,6 +110,25 @@ class _LocationPageState extends State<LocationPage> {
     setState(() {
       _distance = distanceInMeters / 1000; // Convert to kilometers
     });
+  }
+
+  void _focusMap() {
+    if (_currentPosition == null || _selectedCity.isEmpty) return;
+
+    LatLng userLocation =
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
+    LatLng cityLocation = cities[_selectedCity]!;
+
+    // Calculate the bounds that include both the user's location and the selected city
+    final bounds = LatLngBounds.fromPoints([userLocation, cityLocation]);
+
+    // Fit the map to the calculated bounds with some padding
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: bounds,
+        padding: EdgeInsets.all(defaultPadding.toDouble()),
+      ),
+    );
   }
 
   @override
@@ -100,12 +141,13 @@ class _LocationPageState extends State<LocationPage> {
         children: [
           Expanded(
             child: FlutterMap(
+              mapController: _mapController,
               options: MapOptions(
-                center: _currentPosition != null
+                initialCenter: _currentPosition != null
                     ? LatLng(
                         _currentPosition!.latitude, _currentPosition!.longitude)
                     : LatLng(0, 0),
-                zoom: 5,
+                initialZoom: defaultZoom.toDouble(),
               ),
               children: [
                 TileLayer(
@@ -154,6 +196,7 @@ class _LocationPageState extends State<LocationPage> {
                       _selectedCity = newValue!;
                     });
                     _calculateDistance();
+                    _focusMap(); // Add this line to focus the map when a city is selected
                   },
                 ),
                 const SizedBox(height: 20),
