@@ -26,4 +26,5 @@ Feel free to use any 3rd party library to solve the problem.
 
 3. Select a city, then change to another city, the distance will be updated
 
-<video controls src="./assets/Simulator Screen Recording - iPhone 14 - 2024-09-02 at 11.20.25.mp4" title="Title"></video>
+
+[check video](./assets/Simulator%20Screen%20Recording%20-%20iPhone%2014%20-%202024-09-02%20at%2011.20.25.mp4)
