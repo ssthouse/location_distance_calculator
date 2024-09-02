@@ -1,16 +1,29 @@
 # location_distance_calculator
 
-A new Flutter project.
+## Product Requirements:
 
-## Getting Started
+1. Displays the user’s last known location 
+2. Asks the user to pick one of the following cities:  Chicago, New York, Paris, Singapore
+3. Calculates and displays the distance from #1 to the city picked in #2
 
-This project is a starting point for a Flutter application.
+Feel free to use any 3rd party library to solve the problem.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Please notice that:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. User's last known locations is get by `Geolocator` package. when app starts, it will ask for permission to get user's location.
+2. I was planning to use google map but it requires API key, so I use `flutter_map` package to display map and `latlong2` package to calculate the distance.
+
+## Basic Usage(Testcase)
+
+1. Open App, display current location on the map
+
+![1](./assets/image.png)
+
+2. Select city from the bottom sheet, and display the distance to the city
+
+![alt text](./assets/testcase2.png)
+
+3. Select a city, then change to another city, the distance will be updated
+
+<video controls src="./assets/Simulator Screen Recording - iPhone 14 - 2024-09-02 at 11.20.25.mp4" title="Title"></video>
